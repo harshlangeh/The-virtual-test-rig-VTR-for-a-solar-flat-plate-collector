@@ -1,0 +1,1708 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import math as m
+
+# Taking Inputs
+
+# day, month, year  = map(int, input("Enter DD:MM:YYYY ").split(":"))
+# lati, tude  = map(int, input("Enter Latitude(HH.MM) ").split("."))
+# longi, tude2  = map(int, input("Enter Longitude(HH.MM) ").split("."))
+# std_time = float(input("Enter time in hours, HH.MM "))
+# beta = float(input("Enter Collector Tilt/Slope(beta) "))
+# gamma = float(input("Surface Azimuth(gamma) "))
+# covers = float(input("Number of covers "))
+# cover_thickness = float(input("Thickness of each glass cover(in mm) "))
+# extinction = float(input("Extinction coefficient of glass(per meter) "))
+# alpha = float(input("Plate Absorptivity for solar radiation  "))
+# Ep = float(input("Emissivity of absorber plate "))
+# K = float(input("Thermal Conductivity of Plate Material (in W/m-K) "))
+# plate = float(input("Plate Thickness in mm "))
+# tube = float(input("Tube centre-to-centre distance cm "))
+# Outer_dia = float(input("Outer dia of tube mm "))
+# Inner_dia = float(input("Inner dia of tube mm "))
+# hf = float(input("Fluid to heat transfer coefficient (watt/sq meter/K) "))
+# s_a = float(input("Adhesive Thickness(Enter 0 if negligible) "))
+# Mass_flow_rate = float(input("Water/Mass Flow Rate (in Kg/h) "))
+# absorber_length = float(input("Length of absorber plate (in meter) "))
+# absorber_width = float(input("Width of absorber plate (in meter) "))
+# collector_length = float(input("Length of collector (in meter) "))
+# collector_width = float(input("Width of collector (in meter) "))
+# Tfi = float(input("Water Inlet Temperature (in degree celcus) "))
+# Ta = float(input("Ambient Temperature (in degree celcus) "))
+# V_inf = float(input("Wind Speed (m/s) "))
+# Ec = float(input("Emissivity of glass cover "))
+# k_i = float(input("Insulation Thermal conductivity (in W/m-K) "))
+# s_b_cm = float(input("Back Insulation Thickness (in cm) "))
+# L_p_c = float(input("Spacing (in cm) "))
+
+
+
+
+
+
+print("----------------SOLUTION--------------------")
+
+
+# Test Values
+
+day, month, year  = 15, 5, 1999
+lati, tude  = 18, 32
+longi, tude2  = 73, 51
+std_time = 12.00
+beta = 18.32
+gamma = 0
+covers = 2
+cover_thickness = 4 
+extinction = 19
+alpha = 0.94
+K = 350
+plate = 0.15
+tube = 11.3
+Outer_dia = 13.7
+Inner_dia = 12.5
+hf = 205
+s_a = 0
+Mass_flow_rate = 70
+absorber_length = 2
+absorber_width = 0.98
+collector_length = 2.08
+collector_width = 1.07
+Tfi = 60
+Ta = 25
+V_inf = 3.1
+Ep = 0.14
+Ec = 0.88
+L_p_c = 2.5
+Ib = 725
+Id = 230
+k_i = 0.04
+s_b_cm = 5
+
+
+#  List creation
+
+mylist_Ib = []
+mylist_Id = []
+mylist_It = []
+mylist_Tpm = []
+mylist_Ul = []
+mylist_qu = []
+mylist_Tfo = []
+mylist_Eff = []
+
+# n value
+
+o = month + day
+k_a = 1
+
+
+
+
+def n_value():
+    
+    
+    if month == 1 :
+        o = 0 + day
+    elif month == 2:
+        o = 31 + day
+    elif month == 3:
+        o = 59 + day
+    elif month == 4:
+        o = 90 + day
+    elif month == 5:
+        o = 120 + day
+    elif month == 6:
+        o = 151 + day
+    elif month == 7:
+        o = 181 +day
+    elif month == 8:
+        o = 212 + day
+    elif month == 9:
+        o = 243 + day
+    elif month == 10:
+        o = 273 + day
+    elif month == 11:
+        o = 304 + day
+    elif month == 12:
+        o = 334 + day
+    else: print("wrong")
+
+    return o
+
+n = n_value()
+
+print("The Value of n is ",n)
+
+# delta
+
+delta = round((23.45)*m.sin((m.pi*((360*(284+ n))/365))/180),2)
+print("Declination Angle, (Delta in Degrees): ", delta)
+
+# latitude and longitude
+
+abc1 = float(tude/60)
+Latitude_in_degree = round(int(lati) + abc1, 2)
+print(f"Latitude_in_degree: {Latitude_in_degree}")
+
+abc2 = float(tude2/60)
+Longitude_in_degree = round(int(longi) + abc2, 2)
+print(f"Longitude_in_degree: {Longitude_in_degree}")
+
+
+# equation for correction of time 
+
+B = ((n-1)*360)/365
+# B = float(B1*3.14)/180
+# print("B=", B)
+
+ETT = (0.000075) + (0.001868*m.cos(m.radians(B)) - (0.032077*m.sin(m.radians(B))) - (0.032077*m.sin(m.radians(B))) - (0.014615*m.cos(m.radians(2*B))) - (0.04089*m.sin(m.radians(2*B))))
+EED = float(ETT)
+ET= float(229.18*EED)
+# print("ET=", ET)
+
+# LAT 
+
+abc3s = float((82.50) - float(Longitude_in_degree))
+abc3 = (0.06667*abc3s)
+
+abcd4 = float(abc3) + float(ET/60)
+
+abcd5 = (abcd4)
+
+Lat = round((std_time -abcd5),2)
+
+# HOUR ANGLE
+
+hour_angle = round(float(-15*(Lat - 12)),2)
+# print("hour_angle= ", hour_angle )
+q = Latitude_in_degree
+M = 1
+k = delta
+b = beta
+e = gamma
+w = hour_angle
+
+# COS THETA
+cos_theta = float((m.sin((q*m.pi)/180)*((m.sin((k*m.pi)/180)*m.cos((b*m.pi)/180))+(m.cos((k*m.pi)/180)*m.cos(e)*m.cos((b*m.pi)/180)*m.sin((b*m.pi)/180)))+(m.cos((q*m.pi)/180)*((m.cos((k*m.pi)/180)*m.cos((m.pi*w)/180)*m.cos((b*m.pi)/180))-(m.sin((k*m.pi)/180)*m.cos(e)*m.sin((b*m.pi)/180))))+(m.cos((k*m.pi)/180)*m.sin(e)*m.sin((m.pi*w)/180)*m.sin((b*m.pi)/180))))
+theta_1 = float(m.degrees(m.acos((cos_theta))))
+# 
+theta = round(theta_1,2)
+print(f"Angle of Incidence, Theta: {theta}")
+# 
+theta_s = (m.sin((q*m.pi)/180)*m.sin((k*m.pi)/180))+(m.cos((q*m.pi)/180)*m.cos((k*m.pi)/180)*m.cos((m.pi*w)/180))
+# 
+theta_z = (m.sin(m.radians(Latitude_in_degree))*m.sin(m.radians(delta))) + m.cos(m.radians(Latitude_in_degree))*m.cos(m.radians(delta))*m.cos(m.radians(hour_angle))
+
+
+# Solar flux incident on collector, It
+
+if n <= 21:
+
+    A_A = 1202
+    B_B = 0.141
+    C_C = 0.103
+
+elif n > 21 and n < 52:
+    A_A = 1202 - (((1202 - 1187)*24)/30)
+    B_B = 0.141 - (((0.141 - 0.142)*24)/30)
+    C_C = 0.103 - (((0.103 - 0.104)*24)/30)
+
+elif n == 52:
+    A_A = 1202
+    B_B = 0.141
+    C_C = 0.103
+
+
+
+elif n > 52 and n < 80 :
+    A_A = 1187 - (((1187 - 1164)*24)/30)
+    B_B = 0.142 - (((0.142 - 0.149)*24)/30)
+    C_C = 0.104 - (((0.104 - 0.109)*24)/30)
+
+
+
+elif n == 80:
+    A_A = 1202
+    B_B = 0.141
+    C_C = 0.103
+
+
+
+
+elif n > 80 and n < 101 :
+    A_A = 1187 - (((1187 - 1164)*24)/30)
+    B_B = 0.142 - (((0.142 - 0.149)*24)/30)
+    C_C = 0.104 - (((0.104 - 0.109)*24)/30)
+
+
+
+else:
+    A_A = 1110.8
+    B_B = 0.174
+    C_C = 0.128
+
+    
+# print("The Value of ABC is ",A_A)
+
+Ibnnn = B_B/m.cos(m.radians(theta_z))
+
+Ibn = A_A*m.exp(-Ibnnn)
+
+Ib = round(Ibn*m.cos(m.radians(theta_z)),2)
+Id = round((C_C*Ib),2)
+
+print("Ib = ",Ib)
+print("Id = ",Id)
+
+rb=((m.sin((k*m.pi)/180)*m.sin(((q-b)*m.pi)/180))+(m.cos((k*m.pi)/180)*m.cos((w*m.pi)/180)*m.cos(((q-b)*m.pi)/180)))/((m.sin((k*m.pi)/180)*m.sin((q*m.pi)/180))+(m.cos((k*m.pi)/180)*m.cos((w*m.pi)/180)*m.cos((q*m.pi)/180)))
+# print(f"value of rb: {rb}")
+rd=(1+m.cos((b*m.pi)/180))/2
+# print(f"value of rd: {rd}")
+rr=(.2*(1-m.cos((b*m.pi)/180)))/2
+# print(f"value of rr: {rr}")
+
+
+It = round(((Ib*rb)+(Id*rd)+(Ib+Id)*rr),2)
+print(f"Solar Flux Incident on collector, It (W/sq m): {It}")
+
+
+# Transmissivity 
+
+thetaa2 = m.sin(m.radians(theta))
+# print("thetaa2 = ", thetaa2)
+thetaa2x = thetaa2/1.526
+# print("thetaa2x = ", thetaa2x)
+theta22 = m.asin(thetaa2x)
+theta2 = round((theta22*57.2958),2)
+print("Angle of Refraction",theta2)
+
+
+theta_2_minus_1 = theta - theta2
+# print("theta_2_plus_1", theta_2_minus_1)
+theta_2_plus_1 = (theta2 + theta)
+# print("theta_2_plus_1", theta_2_plus_1)
+roo_1_top = m.sin(m.radians(theta_2_minus_1)**2)
+# print("roo_1_top", roo_1_top)
+roo_1_bottom = float(m.sin(m.radians(theta_2_plus_1)**2))
+# print("roo_1_bottom", roo_1_bottom)
+
+
+
+
+row1 = round((roo_1_top/roo_1_bottom),4)
+# print("ROW_1  =", row1)
+
+roo_2_top = m.tan(m.radians(theta_2_minus_1)**2)
+roo_2_bottom = m.tan(m.radians(theta_2_plus_1)**2)
+
+row2 = round((roo_2_top/roo_2_bottom),4)
+# print("ROW_2  =", row2)
+
+# row = 0.5()
+aaot = (2*covers -1)
+tao_r1_top = 1 - row1
+tao_r1_bottom = 1 + (aaot)*row1
+
+tao_r1 = round((tao_r1_top/tao_r1_bottom),4)
+# print("Tao_r1  =", tao_r1)
+
+tao_r2_top = (1 - row2)
+tao_r2_bottom = 1 + (aaot)*row2
+
+tao_r2 = round((tao_r2_top/tao_r2_bottom),4)
+# print("Tao_r2  =", tao_r2)
+
+tao_r = round(((tao_r1 + tao_r2)/2),4)
+# print("Tao_r  =", tao_r)
+
+delta_c = (cover_thickness/1000)
+taoo_top = (covers*delta_c*extinction)
+taoo_bottom = m.cos(m.radians(theta2))
+taoo_ss = (taoo_top/taoo_bottom)
+tao_a = m.exp(-1*taoo_ss)
+# print("Tao_a  =", tao_a)
+
+tao = round((tao_a*tao_r),3)
+# print("Tao  =", tao)
+
+# Transmissivity for Diffused Radiation
+
+theta_1d = m.sin(m.radians(60))
+thetaa2d = m.sin(m.radians(60))/(1.526)
+theta_2d = m.asin(m.radians(thetaa2d))
+# print("Angle of Refraction for diffused rad.",theta2)
+
+theta_2d_minus_1 = theta_2d - theta_1d
+theta_2d_plus_1 = theta_2d + theta_1d
+
+roo_1d_top = m.sin(m.radians(theta_2d_minus_1)**2)
+roo_1d_bottom = m.sin(m.radians(theta_2d_plus_1)**2)
+
+row_1d = round((roo_1_top/roo_1_bottom),4)
+# print("ROW_1D  =", row_1d)
+
+roo_2d_top = m.tan(m.radians(theta_2d_minus_1)**2)
+roo_2d_bottom = m.tan(m.radians(theta_2d_plus_1))**2
+
+row_2d = round((roo_2_top/roo_2_bottom),4)
+# print("ROW_2D  =", row_2d)
+
+tao_r1d_top = 1 - row_1d
+tao_r1d_bottom = 1 + (aaot)*row_1d
+
+tao_r1d = round((tao_r1d_top/tao_r1d_bottom),4)
+# print("Tao_r1d  =", tao_r1d)
+
+tao_r2d_top = (1 - row_2d)
+tao_r2d_bottom = 1 + (aaot)*row_2d
+
+
+tao_r2d = round((tao_r2d_top/tao_r2d_bottom),4)
+# print("Tao_r2d  =", tao_r2)
+
+tao_rd = round(((tao_r1d + tao_r2d)/2),4)
+# print("Tao_rd  =", tao_rd)
+
+delta_c = (cover_thickness/1000)
+taoo_top = (covers*delta_c*extinction)
+taoo_bottom = m.cos(m.radians(theta_2d))
+tao_ad = m.exp(-(taoo_top/taoo_bottom))
+# print("Tao_ad  =", tao_ad)
+
+
+tao_d = round((tao_ad*tao_rd),3)
+# print("Tao_d  =", tao_d)
+
+row_d = tao_ad - tao_d
+# print("row_d  =", row_d)
+
+tao_alpha_b = (tao*alpha)/(1-(1-alpha)*row_d)
+# print("tao_alpha_b  =", tao_alpha_b)
+
+tao_alpha_d = (tao_d*alpha)/(1-(1-alpha)*row_d)
+# print("tao_alpha_d  =", tao_alpha_d)
+
+# incident flux absorbed by absorber plate
+
+S_flux = (Ib*rb*tao_alpha_b) + (Id*rd*tao_alpha_d) + ((Ib+Id)*rr*tao_alpha_d)
+S = round(S_flux,2)
+print("Incident Flux Absorbed by Absorber Plater, S (W/sq m)  =", S)
+
+
+# To find Tpm with  assumed Ul = Ul1
+Ul1 = 4
+# CALCULATION OF TOP LOSS COEFFICIENT Ut
+
+Tpm_c = 54.8 + Ta
+Tpm_K = Tpm_c + 273.15
+Ta_K = Ta + 273.15
+# print(f"The Value of Tpm = {Tpm_K} Kelvin" )
+Tsky = Ta_K - 6
+Tsky_4 = Tsky**4
+sigma = 5.67*(10**-8)
+Tpm_K4 = Tpm_K**4
+hw = 8.55 + 2.56*V_inf
+print("hw",hw)
+
+mylist_qtap1 = []
+mylist_qtap2 = []
+mylist_qtap3 = []
+
+# =================================================================================
+# =================================================================================
+# =================================================================================
+# =================================================================================
+# =================================================================================
+# =================================================================================
+# =================================================================================
+# =================================================================================
+# =================================================================================
+# =================================================================================
+# =================================================================================
+# =================================================================================
+
+
+# Iteration 1 
+print("============ITERATION - 1=======================")
+#  Assume 
+T_c1 = Tpm_K - 10
+print("T_c1 = ", T_c1)
+T_c1_4 = T_c1**4
+T_c2 = Ta_K + 5
+print("T_c2 = ", T_c2)
+T_c2_4 = T_c2**4
+
+#  1. hp_c1
+
+# mean temp
+hp_t_mean = (Tpm_K + T_c1)/2
+print("T_mean1 = ", hp_t_mean)
+hp_t_mean2 = round((T_c1 + T_c2)/2,2)
+print("T_mean2 = ", hp_t_mean2)
+
+
+cos_beta = m.cos(m.radians(beta))
+L_p = L_p_c/100
+L_c = L_p
+
+
+
+# ===== iteration  start========
+
+ral1 = (9.81/hp_t_mean)
+# print("1111-",ral1)
+ral1c = (Tpm_K - T_c1)*(L_p*L_p*L_p)
+# print("2222",ral1c)
+ral2 = ral1c/(363.28*10**-12)
+# print("3333",ral2)
+ral3 = 0.696*cos_beta
+# print("4444",ral3)
+
+Ral_cos_beta = ral1 * ral2 * ral3
+# print("value of ral_cos_beta_1",Ral_cos_beta)
+
+    
+if Ral_cos_beta < 1708:
+    N_ul = 1
+    
+elif Ral_cos_beta < 5900:
+    N_ul = float(1 + 1.446*(1 - (1708/Ral_cos_beta)))
+    
+elif Ral_cos_beta <= 92300 :
+    N_ul = float(0.229*(Ral_cos_beta)**0.252)
+    
+elif Ral_cos_beta <= 1000000:
+    N_ul = float(0.157*(Ral_cos_beta)**0.285)
+else :
+    N_ul = float(0.229*(Ral_cos_beta)**0.252)
+    
+
+# print("Nul(1) ", N_ul)
+hp_c1 = round(((0.0291*N_ul)/L_p),2)
+
+print("Nul(1) ",round(N_ul,2))
+print("hp_c1 ", hp_c1)
+
+
+# ----P-C1-----
+Tpm4_Tc1_4 = Tpm_K4 - T_c1_4
+# print("11-",Tpm4_Tc1_4)
+qt_Ap_c1_x1 = hp_c1*(Tpm_K - T_c1)
+# print("12-",qt_Ap_c1_x1)
+qt_Ap_c1_x2 = sigma*(Tpm4_Tc1_4)
+# print("13-",qt_Ap_c1_x2)
+qt_Ap_c1_x3 = (1/Ep + 1/Ec - 1)
+# print("14-", qt_Ap_c1_x3)
+qt_Ap_c1_x4 = qt_Ap_c1_x2/qt_Ap_c1_x3
+# print("15-",qt_Ap_c1_x4)
+qt_Ap_p_c1 = round((qt_Ap_c1_x1 + qt_Ap_c1_x4),2)
+print("qt/Ap(1) = ", qt_Ap_p_c1)
+mylist_qtap1.append(qt_Ap_p_c1)
+
+
+
+
+ral1x = (9.81/hp_t_mean2)
+# print(ral1)
+ral2cx = (T_c1 - T_c2)*(L_p*L_p*L_p)
+# print(ral2cx)
+ral2x = ral2cx/(363.28*10**-12)
+# print(ral2)
+ral3x = 0.696*cos_beta
+# print(ral3)
+
+Ral_cos_beta2 = ral1x * ral2x * ral3x
+# print("value of ral_cos_beta_2",Ral_cos_beta2)
+
+    
+if Ral_cos_beta2 < 1708:
+    N_ul2 = 1
+    
+elif Ral_cos_beta2 < 5900:
+    N_ul2 = float(1 + 1.446*(1 - (1708/Ral_cos_beta2)))
+    
+elif Ral_cos_beta2 <= 92300 :
+    N_ul2 = float(0.229*(Ral_cos_beta2)**0.252)
+    
+elif Ral_cos_beta2 <= 1000000:
+    N_ul2 = float(0.157*(Ral_cos_beta2)**0.285)
+else :
+    N_ul2 = float(0.229*(Ral_cos_beta2)**0.252)
+    
+
+# print("Nul(2) ", N_ul2)
+hc1_c2 = round(((0.0291*N_ul2)/L_p),2)
+
+print("Nul(2) ",round(N_ul2,2) )
+print("hc1_c2 ", hc1_c2)
+
+
+# ----C1-C2----------
+Tc1_4_Tc2_4 = T_c1_4 - T_c2_4
+# print("11x-",Tc1_4_Tc2_4)
+qt_c1_c2_x1 = round((hc1_c2*(T_c1 - T_c2)),2)
+# print("12x-",qt_c1_c2_x1)
+qt_c1_c2_x2 = round((sigma*(T_c1_4 - T_c2_4)),2)
+# print("13x-", qt_c1_c2_x2)
+qt_c1_c2_x3 = round((1/Ec + 1/Ec - 1),2)
+# print("14x-", qt_c1_c2_x3)
+qt_c1_c2_x4 = round((qt_c1_c2_x2/qt_c1_c2_x3),2)
+# print("15x-",qt_c1_c2_x4)
+qt_Ap_c1_c2 = round((qt_c1_c2_x1 + qt_c1_c2_x4),2)
+print("qt/Ap(2)", qt_Ap_c1_c2)
+mylist_qtap2.append(qt_Ap_c1_c2)
+
+# ------c2-hw-----
+qt_Ap_hw_x1 = hw*(T_c2 - Ta_K)
+# print("11y-",qt_Ap_hw_x1)
+qt_Ap_hw_x2 = sigma*(Ec)*(T_c2_4 - Tsky_4)
+# print("12y-",qt_Ap_hw_x2)
+qt_Ap_p_c1 = qt_Ap_hw_x1 + qt_Ap_hw_x2
+# print("13y-",qt_Ap_p_c1)
+qt_Ap_hw = round(qt_Ap_p_c1,2)
+print("qt/Ap(3)", qt_Ap_hw)
+mylist_qtap3.append(qt_Ap_hw)
+
+
+# ===== iteration  ends=========
+
+# Iteration 2 for 
+print("============ITERATION - 2---=======================")
+
+#  Assume 
+T_c1 = Tpm_K - 20
+print("T_c1 = ", T_c1)
+T_c1_4 = T_c1**4
+T_c2 = Ta_K + 5.5
+print("T_c2 = ", T_c2)
+T_c2_4 = T_c2**4
+
+#  1. hp_c1
+
+# mean temp
+hp_t_mean = (Tpm_K + T_c1)/2
+print("T_mean1 = ", hp_t_mean)
+hp_t_mean2 = round((T_c1 + T_c2)/2,2)
+print("T_mean2 = ", hp_t_mean2)
+
+
+cos_beta = m.cos(m.radians(beta))
+L_p = L_p_c/100
+L_c = L_p
+
+
+
+# ===== iteration  start========
+
+ral1 = (9.81/hp_t_mean)
+# print("1111-",ral1)
+ral1c = (Tpm_K - T_c1)*(L_p*L_p*L_p)
+# print("2222",ral1c)
+ral2 = ral1c/(363.28*10**-12)
+# print("3333",ral2)
+ral3 = 0.696*cos_beta
+# print("4444",ral3)
+
+Ral_cos_beta = ral1 * ral2 * ral3
+# print("value of ral_cos_beta_1",Ral_cos_beta)
+
+    
+if Ral_cos_beta < 1708:
+    N_ul = 1
+    
+elif Ral_cos_beta < 5900:
+    N_ul = float(1 + 1.446*(1 - (1708/Ral_cos_beta)))
+    
+elif Ral_cos_beta <= 92300 :
+    N_ul = float(0.229*(Ral_cos_beta)**0.252)
+    
+elif Ral_cos_beta <= 1000000:
+    N_ul = float(0.157*(Ral_cos_beta)**0.285)
+else :
+    N_ul = float(0.229*(Ral_cos_beta)**0.252)
+    
+
+# print("Nul(1) ", N_ul)
+hp_c1 = round(((0.0291*N_ul)/L_p),2)
+
+print("Nul(1) ",round(N_ul,2))
+print("hp_c1 ", hp_c1)
+
+
+# ----P-C1-----
+Tpm4_Tc1_4 = Tpm_K4 - T_c1_4
+# print("11-",Tpm4_Tc1_4)
+qt_Ap_c1_x1 = hp_c1*(Tpm_K - T_c1)
+# print("12-",qt_Ap_c1_x1)
+qt_Ap_c1_x2 = sigma*(Tpm4_Tc1_4)
+# print("13-",qt_Ap_c1_x2)
+qt_Ap_c1_x3 = (1/Ep + 1/Ec - 1)
+# print("14-", qt_Ap_c1_x3)
+qt_Ap_c1_x4 = qt_Ap_c1_x2/qt_Ap_c1_x3
+# print("15-",qt_Ap_c1_x4)
+qt_Ap_p_c1 = round((qt_Ap_c1_x1 + qt_Ap_c1_x4),2)
+print("qt/Ap(1) = ", qt_Ap_p_c1)
+mylist_qtap1.append(qt_Ap_p_c1)
+
+
+
+
+ral1x = (9.81/hp_t_mean2)
+# print(ral1)
+ral2cx = (T_c1 - T_c2)*(L_p*L_p*L_p)
+# print(ral2cx)
+ral2x = ral2cx/(363.28*10**-12)
+# print(ral2)
+ral3x = 0.696*cos_beta
+# print(ral3)
+
+Ral_cos_beta2 = ral1x * ral2x * ral3x
+# print("value of ral_cos_beta_2",Ral_cos_beta2)
+
+    
+if Ral_cos_beta2 < 1708:
+    N_ul2 = 1
+    
+elif Ral_cos_beta2 < 5900:
+    N_ul2 = float(1 + 1.446*(1 - (1708/Ral_cos_beta2)))
+    
+elif Ral_cos_beta2 <= 92300 :
+    N_ul2 = float(0.229*(Ral_cos_beta2)**0.252)
+    
+elif Ral_cos_beta2 <= 1000000:
+    N_ul2 = float(0.157*(Ral_cos_beta2)**0.285)
+else :
+    N_ul2 = float(0.229*(Ral_cos_beta2)**0.252)
+    
+
+# print("Nul(2) ", N_ul2)
+hc1_c2 = round(((0.0291*N_ul2)/L_p),2)
+
+print("Nul(2) ",round(N_ul2,2) )
+print("hc1_c2 ", hc1_c2)
+
+
+# ----C1-C2----------
+Tc1_4_Tc2_4 = T_c1_4 - T_c2_4
+# print("11x-",Tc1_4_Tc2_4)
+qt_c1_c2_x1 = round((hc1_c2*(T_c1 - T_c2)),2)
+# print("12x-",qt_c1_c2_x1)
+qt_c1_c2_x2 = round((sigma*(T_c1_4 - T_c2_4)),2)
+# print("13x-", qt_c1_c2_x2)
+qt_c1_c2_x3 = round((1/Ec + 1/Ec - 1),2)
+# print("14x-", qt_c1_c2_x3)
+qt_c1_c2_x4 = round((qt_c1_c2_x2/qt_c1_c2_x3),2)
+# print("15x-",qt_c1_c2_x4)
+qt_Ap_c1_c2 = round((qt_c1_c2_x1 + qt_c1_c2_x4),2)
+print("qt/Ap(2)", qt_Ap_c1_c2)
+mylist_qtap2.append(qt_Ap_c1_c2)
+
+# ------c2-hw-----
+qt_Ap_hw_x1 = hw*(T_c2 - Ta_K)
+# print("11y-",qt_Ap_hw_x1)
+qt_Ap_hw_x2 = sigma*(Ec)*(T_c2_4 - Tsky_4)
+# print("12y-",qt_Ap_hw_x2)
+qt_Ap_p_c1 = qt_Ap_hw_x1 + qt_Ap_hw_x2
+# print("13y-",qt_Ap_p_c1)
+qt_Ap_hw = round(qt_Ap_p_c1,2)
+print("qt/Ap(3)", qt_Ap_hw)
+mylist_qtap3.append(qt_Ap_hw)
+
+
+# ===== iteration  ends=========
+
+
+print("============ITERATION - 3---=======================")
+
+#  Assume 
+T_c1 = Tpm_K - 23.5
+print("T_c1 = ", T_c1)
+T_c1_4 = T_c1**4
+T_c2 = Ta_K + 4.5
+print("T_c2 = ", T_c2)
+T_c2_4 = T_c2**4
+
+#  1. hp_c1
+
+# mean temp
+hp_t_mean = (Tpm_K + T_c1)/2
+print("T_mean1 = ", hp_t_mean)
+hp_t_mean2 = round((T_c1 + T_c2)/2,2)
+print("T_mean2 = ", hp_t_mean2)
+
+
+cos_beta = m.cos(m.radians(beta))
+L_p = L_p_c/100
+L_c = L_p
+
+
+
+# ===== iteration  start========
+
+ral1 = (9.81/hp_t_mean)
+# print("1111-",ral1)
+ral1c = (Tpm_K - T_c1)*(L_p*L_p*L_p)
+# print("2222",ral1c)
+ral2 = ral1c/(363.28*10**-12)
+# print("3333",ral2)
+ral3 = 0.696*cos_beta
+# print("4444",ral3)
+
+Ral_cos_beta = ral1 * ral2 * ral3
+# print("value of ral_cos_beta_1",Ral_cos_beta)
+
+    
+if Ral_cos_beta < 1708:
+    N_ul = 1
+    
+elif Ral_cos_beta < 5900:
+    N_ul = float(1 + 1.446*(1 - (1708/Ral_cos_beta)))
+    
+elif Ral_cos_beta <= 92300 :
+    N_ul = float(0.229*(Ral_cos_beta)**0.252)
+    
+elif Ral_cos_beta <= 1000000:
+    N_ul = float(0.157*(Ral_cos_beta)**0.285)
+else :
+    N_ul = float(0.229*(Ral_cos_beta)**0.252)
+    
+
+# print("Nul(1) ", N_ul)
+hp_c1 = round(((0.0291*N_ul)/L_p),2)
+
+print("Nul(1) ",round(N_ul,2))
+print("hp_c1 ", hp_c1)
+
+
+# ----P-C1-----
+Tpm4_Tc1_4 = Tpm_K4 - T_c1_4
+# print("11-",Tpm4_Tc1_4)
+qt_Ap_c1_x1 = hp_c1*(Tpm_K - T_c1)
+# print("12-",qt_Ap_c1_x1)
+qt_Ap_c1_x2 = sigma*(Tpm4_Tc1_4)
+# print("13-",qt_Ap_c1_x2)
+qt_Ap_c1_x3 = (1/Ep + 1/Ec - 1)
+# print("14-", qt_Ap_c1_x3)
+qt_Ap_c1_x4 = qt_Ap_c1_x2/qt_Ap_c1_x3
+# print("15-",qt_Ap_c1_x4)
+qt_Ap_p_c1 = round((qt_Ap_c1_x1 + qt_Ap_c1_x4),2)
+print("qt/Ap(1) = ", qt_Ap_p_c1)
+mylist_qtap1.append(qt_Ap_p_c1)
+
+
+
+
+ral1x = (9.81/hp_t_mean2)
+# print(ral1)
+ral2cx = (T_c1 - T_c2)*(L_p*L_p*L_p)
+# print(ral2cx)
+ral2x = ral2cx/(363.28*10**-12)
+# print(ral2)
+ral3x = 0.696*cos_beta
+# print(ral3)
+
+Ral_cos_beta2 = ral1x * ral2x * ral3x
+# print("value of ral_cos_beta_2",Ral_cos_beta2)
+
+    
+if Ral_cos_beta2 < 1708:
+    N_ul2 = 1
+    
+elif Ral_cos_beta2 < 5900:
+    N_ul2 = float(1 + 1.446*(1 - (1708/Ral_cos_beta2)))
+    
+elif Ral_cos_beta2 <= 92300 :
+    N_ul2 = float(0.229*(Ral_cos_beta2)**0.252)
+    
+elif Ral_cos_beta2 <= 1000000:
+    N_ul2 = float(0.157*(Ral_cos_beta2)**0.285)
+else :
+    N_ul2 = float(0.229*(Ral_cos_beta2)**0.252)
+    
+
+# print("Nul(2) ", N_ul2)
+hc1_c2 = round(((0.0291*N_ul2)/L_p),2)
+
+print("Nul(2) ",round(N_ul2,2) )
+print("hc1_c2 ", hc1_c2)
+
+
+# ----C1-C2----------
+Tc1_4_Tc2_4 = T_c1_4 - T_c2_4
+# print("11x-",Tc1_4_Tc2_4)
+qt_c1_c2_x1 = round((hc1_c2*(T_c1 - T_c2)),2)
+# print("12x-",qt_c1_c2_x1)
+qt_c1_c2_x2 = round((sigma*(T_c1_4 - T_c2_4)),2)
+# print("13x-", qt_c1_c2_x2)
+qt_c1_c2_x3 = round((1/Ec + 1/Ec - 1),2)
+# print("14x-", qt_c1_c2_x3)
+qt_c1_c2_x4 = round((qt_c1_c2_x2/qt_c1_c2_x3),2)
+# print("15x-",qt_c1_c2_x4)
+qt_Ap_c1_c2 = round((qt_c1_c2_x1 + qt_c1_c2_x4),2)
+print("qt/Ap(2)", qt_Ap_c1_c2)
+mylist_qtap2.append(qt_Ap_c1_c2)
+
+# ------c2-hw-----
+qt_Ap_hw_x1 = hw*(T_c2 - Ta_K)
+# print("11y-",qt_Ap_hw_x1)
+qt_Ap_hw_x2 = sigma*(Ec)*(T_c2_4 - Tsky_4)
+# print("12y-",qt_Ap_hw_x2)
+qt_Ap_p_c1 = qt_Ap_hw_x1 + qt_Ap_hw_x2
+# print("13y-",qt_Ap_p_c1)
+qt_Ap_hw = round(qt_Ap_p_c1,2)
+print("qt/Ap(3)", qt_Ap_hw)
+mylist_qtap3.append(qt_Ap_hw)
+
+
+# ===== iteration  ends=========
+
+
+print("============ITERATION - 4---=======================")
+
+#  Assume 
+T_c1 = Tpm_K - 25
+print("T_c1 = ", T_c1)
+T_c1_4 = T_c1**4
+T_c2 = round(Ta_K + 3.9,2)
+print("T_c2 = ", T_c2)
+T_c2_4 = T_c2**4
+
+#  1. hp_c1
+
+# mean temp
+hp_t_mean = (Tpm_K + T_c1)/2
+print("T_mean1 = ", hp_t_mean)
+hp_t_mean2 = round((T_c1 + T_c2)/2,2)
+print("T_mean2 = ", hp_t_mean2)
+
+
+cos_beta = m.cos(m.radians(beta))
+L_p = L_p_c/100
+L_c = L_p
+
+
+
+# ===== iteration  start========
+
+ral1 = (9.81/hp_t_mean)
+# print("1111-",ral1)
+ral1c = (Tpm_K - T_c1)*(L_p*L_p*L_p)
+# print("2222",ral1c)
+ral2 = ral1c/(363.28*10**-12)
+# print("3333",ral2)
+ral3 = 0.696*cos_beta
+# print("4444",ral3)
+
+Ral_cos_beta = ral1 * ral2 * ral3
+# print("value of ral_cos_beta_1",Ral_cos_beta)
+
+    
+if Ral_cos_beta < 1708:
+    N_ul = 1
+    
+elif Ral_cos_beta < 5900:
+    N_ul = float(1 + 1.446*(1 - (1708/Ral_cos_beta)))
+    
+elif Ral_cos_beta <= 92300 :
+    N_ul = float(0.229*(Ral_cos_beta)**0.252)
+    
+elif Ral_cos_beta <= 1000000:
+    N_ul = float(0.157*(Ral_cos_beta)**0.285)
+else :
+    N_ul = float(0.229*(Ral_cos_beta)**0.252)
+    
+
+# print("Nul(1) ", N_ul)
+hp_c1 = round(((0.0291*N_ul)/L_p),2)
+
+print("Nul(1) ",round(N_ul,2))
+print("hp_c1 ", hp_c1)
+
+
+# ----P-C1-----
+Tpm4_Tc1_4 = Tpm_K4 - T_c1_4
+# print("11-",Tpm4_Tc1_4)
+qt_Ap_c1_x1 = hp_c1*(Tpm_K - T_c1)
+# print("12-",qt_Ap_c1_x1)
+qt_Ap_c1_x2 = sigma*(Tpm4_Tc1_4)
+# print("13-",qt_Ap_c1_x2)
+qt_Ap_c1_x3 = (1/Ep + 1/Ec - 1)
+# print("14-", qt_Ap_c1_x3)
+qt_Ap_c1_x4 = qt_Ap_c1_x2/qt_Ap_c1_x3
+# print("15-",qt_Ap_c1_x4)
+qt_Ap_p_c1 = round((qt_Ap_c1_x1 + qt_Ap_c1_x4),2)
+print("qt/Ap(1) = ", qt_Ap_p_c1)
+mylist_qtap1.append(qt_Ap_p_c1)
+
+
+
+
+ral1x = (9.81/hp_t_mean2)
+# print(ral1)
+ral2cx = (T_c1 - T_c2)*(L_p*L_p*L_p)
+# print(ral2cx)
+ral2x = ral2cx/(363.28*10**-12)
+# print(ral2)
+ral3x = 0.696*cos_beta
+# print(ral3)
+
+Ral_cos_beta2 = ral1x * ral2x * ral3x
+# print("value of ral_cos_beta_2",Ral_cos_beta2)
+
+    
+if Ral_cos_beta2 < 1708:
+    N_ul2 = 1
+    
+elif Ral_cos_beta2 < 5900:
+    N_ul2 = float(1 + 1.446*(1 - (1708/Ral_cos_beta2)))
+    
+elif Ral_cos_beta2 <= 92300 :
+    N_ul2 = float(0.229*(Ral_cos_beta2)**0.252)
+    
+elif Ral_cos_beta2 <= 1000000:
+    N_ul2 = float(0.157*(Ral_cos_beta2)**0.285)
+else :
+    N_ul2 = float(0.229*(Ral_cos_beta2)**0.252)
+    
+
+# print("Nul(2) ", N_ul2)
+hc1_c2 = round(((0.0291*N_ul2)/L_p),2)
+
+print("Nul(2) ",round(N_ul2,2) )
+print("hc1_c2 ", hc1_c2)
+
+
+# ----C1-C2----------
+Tc1_4_Tc2_4 = T_c1_4 - T_c2_4
+# print("11x-",Tc1_4_Tc2_4)
+qt_c1_c2_x1 = round((hc1_c2*(T_c1 - T_c2)),2)
+# print("12x-",qt_c1_c2_x1)
+qt_c1_c2_x2 = round((sigma*(T_c1_4 - T_c2_4)),2)
+# print("13x-", qt_c1_c2_x2)
+qt_c1_c2_x3 = round((1/Ec + 1/Ec - 1),2)
+# print("14x-", qt_c1_c2_x3)
+qt_c1_c2_x4 = round((qt_c1_c2_x2/qt_c1_c2_x3),2)
+# print("15x-",qt_c1_c2_x4)
+qt_Ap_c1_c2 = round((qt_c1_c2_x1 + qt_c1_c2_x4),2)
+print("qt/Ap(2)", qt_Ap_c1_c2)
+mylist_qtap2.append(qt_Ap_c1_c2)
+
+# ------c2-hw-----
+qt_Ap_hw_x1 = hw*(T_c2 - Ta_K)
+# print("11y-",qt_Ap_hw_x1)
+qt_Ap_hw_x2 = sigma*(Ec)*(T_c2_4 - Tsky_4)
+# print("12y-",qt_Ap_hw_x2)
+qt_Ap_p_c1 = qt_Ap_hw_x1 + qt_Ap_hw_x2
+# print("13y-",qt_Ap_p_c1)
+qt_Ap_hw = round(qt_Ap_p_c1,2)
+print("qt/Ap(3)", qt_Ap_hw)
+mylist_qtap3.append(qt_Ap_hw)
+
+
+# ===== iteration  ends=========
+
+
+print("============ITERATION - 5---=======================")
+
+#  Assume 
+T_c1 = Tpm_K - 30
+print("T_c1 = ", T_c1)
+T_c1_4 = T_c1**4
+T_c2 = Ta_K + 3.5
+print("T_c2 = ", T_c2)
+T_c2_4 = T_c2**4
+
+#  1. hp_c1
+
+# mean temp
+hp_t_mean = (Tpm_K + T_c1)/2
+print("T_mean1 = ", hp_t_mean)
+hp_t_mean2 = round((T_c1 + T_c2)/2,2)
+print("T_mean2 = ", hp_t_mean2)
+
+
+cos_beta = m.cos(m.radians(beta))
+L_p = L_p_c/100
+L_c = L_p
+
+
+
+# ===== iteration  start========
+
+ral1 = (9.81/hp_t_mean)
+# print("1111-",ral1)
+ral1c = (Tpm_K - T_c1)*(L_p*L_p*L_p)
+# print("2222",ral1c)
+ral2 = ral1c/(363.28*10**-12)
+# print("3333",ral2)
+ral3 = 0.696*cos_beta
+# print("4444",ral3)
+
+Ral_cos_beta = ral1 * ral2 * ral3
+# print("value of ral_cos_beta_1",Ral_cos_beta)
+
+    
+if Ral_cos_beta < 1708:
+    N_ul = 1
+    
+elif Ral_cos_beta < 5900:
+    N_ul = float(1 + 1.446*(1 - (1708/Ral_cos_beta)))
+    
+elif Ral_cos_beta <= 92300 :
+    N_ul = float(0.229*(Ral_cos_beta)**0.252)
+    
+elif Ral_cos_beta <= 1000000:
+    N_ul = float(0.157*(Ral_cos_beta)**0.285)
+else :
+    N_ul = float(0.229*(Ral_cos_beta)**0.252)
+    
+
+# print("Nul(1) ", N_ul)
+hp_c1 = round(((0.0291*N_ul)/L_p),2)
+
+print("Nul(1) ",round(N_ul,2))
+print("hp_c1 ", hp_c1)
+
+
+# ----P-C1-----
+Tpm4_Tc1_4 = Tpm_K4 - T_c1_4
+# print("11-",Tpm4_Tc1_4)
+qt_Ap_c1_x1 = hp_c1*(Tpm_K - T_c1)
+# print("12-",qt_Ap_c1_x1)
+qt_Ap_c1_x2 = sigma*(Tpm4_Tc1_4)
+# print("13-",qt_Ap_c1_x2)
+qt_Ap_c1_x3 = (1/Ep + 1/Ec - 1)
+# print("14-", qt_Ap_c1_x3)
+qt_Ap_c1_x4 = qt_Ap_c1_x2/qt_Ap_c1_x3
+# print("15-",qt_Ap_c1_x4)
+qt_Ap_p_c1 = round((qt_Ap_c1_x1 + qt_Ap_c1_x4),2)
+print("qt/Ap(1) = ", qt_Ap_p_c1)
+mylist_qtap1.append(qt_Ap_p_c1)
+
+
+
+
+ral1x = (9.81/hp_t_mean2)
+# print(ral1)
+ral2cx = (T_c1 - T_c2)*(L_p*L_p*L_p)
+# print(ral2cx)
+ral2x = ral2cx/(363.28*10**-12)
+# print(ral2)
+ral3x = 0.696*cos_beta
+# print(ral3)
+
+Ral_cos_beta2 = ral1x * ral2x * ral3x
+# print("value of ral_cos_beta_2",Ral_cos_beta2)
+
+    
+if Ral_cos_beta2 < 1708:
+    N_ul2 = 1
+    
+elif Ral_cos_beta2 < 5900:
+    N_ul2 = float(1 + 1.446*(1 - (1708/Ral_cos_beta2)))
+    
+elif Ral_cos_beta2 <= 92300 :
+    N_ul2 = float(0.229*(Ral_cos_beta2)**0.252)
+    
+elif Ral_cos_beta2 <= 1000000:
+    N_ul2 = float(0.157*(Ral_cos_beta2)**0.285)
+else :
+    N_ul2 = float(0.229*(Ral_cos_beta2)**0.252)
+    
+
+# print("Nul(2) ", N_ul2)
+hc1_c2 = round(((0.0291*N_ul2)/L_p),2)
+
+print("Nul(2) ",round(N_ul2,2) )
+print("hc1_c2 ", hc1_c2)
+
+
+# ----C1-C2----------
+Tc1_4_Tc2_4 = T_c1_4 - T_c2_4
+# print("11x-",Tc1_4_Tc2_4)
+qt_c1_c2_x1 = round((hc1_c2*(T_c1 - T_c2)),2)
+# print("12x-",qt_c1_c2_x1)
+qt_c1_c2_x2 = round((sigma*(T_c1_4 - T_c2_4)),2)
+# print("13x-", qt_c1_c2_x2)
+qt_c1_c2_x3 = round((1/Ec + 1/Ec - 1),2)
+# print("14x-", qt_c1_c2_x3)
+qt_c1_c2_x4 = round((qt_c1_c2_x2/qt_c1_c2_x3),2)
+# print("15x-",qt_c1_c2_x4)
+qt_Ap_c1_c2 = round((qt_c1_c2_x1 + qt_c1_c2_x4),2)
+print("qt/Ap(2)", qt_Ap_c1_c2)
+mylist_qtap2.append(qt_Ap_c1_c2)
+
+# ------c2-hw-----
+qt_Ap_hw_x1 = hw*(T_c2 - Ta_K)
+# print("11y-",qt_Ap_hw_x1)
+qt_Ap_hw_x2 = sigma*(Ec)*(T_c2_4 - Tsky_4)
+# print("12y-",qt_Ap_hw_x2)
+qt_Ap_p_c1 = qt_Ap_hw_x1 + qt_Ap_hw_x2
+# print("13y-",qt_Ap_p_c1)
+qt_Ap_hw = round(qt_Ap_p_c1,2)
+print("qt/Ap(3)", qt_Ap_hw)
+mylist_qtap3.append(qt_Ap_hw)
+
+
+# ===== iteration  ends=========
+
+# print("============--ITERATION - Table---=======================")
+
+
+
+print("================== Value of Ul (W/sq m-K) ===================")
+
+# --------------UT---------
+f_ut = (1 - 0.04*hw + 0.0005*hw**2)*(1 + 0.091*M)
+C_ut = 365.9*(1-0.00883*beta+0.0001298*beta**2)
+
+ut_1 = (C_ut/Tpm_K)*(((Tpm_K - Ta_K)/(M+f_ut))**0.33)
+ut_2 = 1/hw
+ut_a = ((M/ut_1) + ut_2)**-1
+
+ut_3 = sigma*((Tpm_K**2)+(Ta_K**2))*(Tpm_K+Ta_K)
+ut_4 = Ep + 0.05*M*(1-Ep)
+ut_5 = 1/ut_4
+ut_6 = ((2*M + f_ut - 1)/(Ec)) - M
+ut_7 = ut_5 + ut_6
+ut_b = ut_3/ut_7
+
+Ut = round((ut_a + ut_b),2)
+print("Ut =", Ut)
+# //////ub and us//////
+k_i
+s_b = s_b_cm/100
+Ub = round(k_i/s_b,2)
+print("Ub =", Ub)
+
+
+Us = round(0.1*Ub,2)
+print("Us =", Us)
+
+
+
+# //////ul
+
+U_l = round((Ut + Ub + Us),2)
+print("Ul =", U_l)
+mylist_Ul.append(U_l)
+
+print("================== Value of F'(W/sq m-K) ===================")
+
+
+
+Ul = U_l
+
+
+pt = plate/1000
+
+m_xbottom = K*pt
+m_x2 = Ul/m_xbottom
+
+m_1 = round(m.sqrt(m_x2),2)
+
+W = tube/100
+Do = Outer_dia/1000
+Di = Inner_dia/1000
+mx_2 = (m_1*(W-Do))/2
+# print("mx_2  =",mx_2)
+mx_3 = (m.tanh(mx_2))
+# print("mx_3 =", mx_3)
+
+phi = round((mx_3/mx_2),3)
+# print("phi  =", phi)
+
+# collector efficiency factor = F'
+
+f_1 = float(W*Ul)
+# print("f_1  =", f_1)
+
+f_2s = (Ul*(W-Do)*phi)+Do
+# print("f_2s  =", f_2s)
+
+f_2 = float(1/f_2s)
+# print("f_2  =", f_2)
+
+f_3s = k_a*Do
+# print("f_3s  =", f_3s)
+
+f_3 = float(s_a/f_3s)
+f_4s = m.pi*hf*Di
+f_4 = float(1/f_4s)
+# below
+f_o = f_1*(f_2+f_3+f_4)
+F_below = round(1/f_o,2)
+print("F'  =", F_below)
+
+
+print("================== Value of Fr  ===================")
+
+# ------------- FR---------
+
+Cp = 1.1611
+
+Ap = absorber_length*absorber_width
+
+m_cp_upon_ap = (Mass_flow_rate*Cp)/Ap
+# print("m_cp_upon_ap  =", m_cp_upon_ap)
+m_cp_upon_up_al = m_cp_upon_ap/Ul
+# print("m_cp_upon_up_al  =", m_cp_upon_up_al)
+in_expo = (F_below*Ul)/m_cp_upon_ap
+# print("in_expo  =", in_expo)
+F_R_2 = (1 - m.exp(-1*in_expo))
+# print("F_R_2  =", F_R_2)
+F_R = round((m_cp_upon_up_al*F_R_2),2)
+print("Fr  =", F_R)
+
+
+print("================== Value of qu and ql (W) ===================")
+
+
+#-------qu = useful heat gain ------------
+
+qu_1 = (S - (U_l*(Tfi - Ta)))
+# print("qu_1 = ", qu_1)
+qu_2 = F_R*Ap
+# print("qu_2 = ", qu_2)
+qu = round((qu_1*qu_2),2)
+print("qu = ", qu)
+mylist_qu.append(qu)
+ql = round((Ap*S - qu),2)
+print("ql = ", ql)
+
+
+print("================== Value of Tpm ===================")
+
+# -----  value of Tpm in kelvin---
+# # new mean temp 
+
+A_collector = collector_length*collector_width
+Tm_new = round(((ql/(U_l*A_collector)) + Ta_K),2)
+print(f"The Value of Tpm = {Tm_new} Kelvin" )
+mylist_Tpm.append(Tm_new)
+
+
+print("================== Value of Tfo ===================")
+
+Tfo_top = (((Mass_flow_rate/3600)*(4.18*1000)*Tfi) + qu)
+tfo_bottom = (Mass_flow_rate/3600)*(4.18*1000)
+Tfo_in_Deg = Tfo_top/tfo_bottom
+Tfo_in_Kelvin = Tfo_in_Deg + 273.15
+Tfo = round((Tfo_in_Kelvin),2)
+print(f"Water Outlet Temperature {Tfo} Kelvin")
+mylist_Tfo.append(Tfo)
+
+
+print("================== Value of Instantaneous Effency ===================")
+
+ni_bottom = It*collector_length*collector_width
+n_i = round((qu/ni_bottom),2)
+print(f"Effency = {n_i} ")
+mylist_Eff.append(n_i)
+
+
+# print
+print("===============================================================================================================================================")
+
+
+
+mylist_Tfi = []
+mylist_eff2 = []
+mylist_Tfo2 = []
+
+
+
+
+print("===================----Fluid Inlet TEMP Variation : 30 TO 90 Degree Celcius ---===========================================")
+
+
+
+
+
+print("=============================----At 30 Degree Celsius---==================================")
+
+
+
+
+Tfi = 30
+mylist_Tfi.append(Tfi)
+
+qu_1 = (S - (U_l*(Tfi - Ta)))
+# print("qu_1 = ", qu_1)
+qu_2 = F_R*Ap
+# print("qu_2 = ", qu_2)
+qu = round((qu_1*qu_2),4)
+# print("qu = ", qu)
+mylist_qu.append(qu)
+ql = round((Ap*S - qu),2)
+
+#  value of Tpm in kelvin
+# new mean temp 
+
+A_collector = collector_length*collector_width
+Tm_new = round(((ql/(U_l*A_collector)) + Ta_K),2)
+Tpm_K = Tm_new
+# print(f"The Value of Tpm = {Tm_new} Kelvin" )
+# mylist_Tpm.append(Tm_new)
+
+    
+# Water Outlet Temperature, Tfo
+
+Tfo_top = (((Mass_flow_rate/3600)*(4.18*1000)*Tfi) + qu)
+tfo_bottom = (Mass_flow_rate/3600)*(4.18*1000)
+Tfo_in_Deg = Tfo_top/tfo_bottom
+Tfo_in_Kelvin = Tfo_in_Deg + 273.15
+Tfo = round((Tfo_in_Kelvin),2)
+print(f"Water Outlet Temperature {Tfo} Kelvin")
+mylist_Tfo2.append(Tfo)
+
+
+#  Effency, n_i
+
+ni_bottom = It*collector_length*collector_width
+n_i = round((qu/ni_bottom),2)
+print(f"Effency = {n_i} ")
+mylist_eff2.append(n_i)
+
+
+
+
+
+
+
+
+
+
+
+print("=============================----At 40 Degree Celsius---==================================")
+
+
+
+
+
+Tfi = 40
+mylist_Tfi.append(Tfi)
+
+qu_1 = (S - (U_l*(Tfi - Ta)))
+# print("qu_1 = ", qu_1)
+qu_2 = F_R*Ap
+# print("qu_2 = ", qu_2)
+qu = round((qu_1*qu_2),4)
+# print("qu = ", qu)
+mylist_qu.append(qu)
+ql = round((Ap*S - qu),2)
+
+#  value of Tpm in kelvin
+# new mean temp 
+
+A_collector = collector_length*collector_width
+Tm_new = round(((ql/(U_l*A_collector)) + Ta_K),2)
+Tpm_K = Tm_new
+# print(f"The Value of Tpm = {Tm_new} Kelvin" )
+# mylist_Tpm.append(Tm_new)
+
+    
+# Water Outlet Temperature, Tfo
+
+Tfo_top = (((Mass_flow_rate/3600)*(4.18*1000)*Tfi) + qu)
+tfo_bottom = (Mass_flow_rate/3600)*(4.18*1000)
+Tfo_in_Deg = Tfo_top/tfo_bottom
+Tfo_in_Kelvin = Tfo_in_Deg + 273.15
+Tfo = round((Tfo_in_Kelvin),2)
+print(f"Water Outlet Temperature {Tfo} Kelvin")
+mylist_Tfo2.append(Tfo)
+
+
+#  Effency, n_i
+
+ni_bottom = It*collector_length*collector_width
+n_i = round((qu/ni_bottom),2)
+print(f"Effency = {n_i} ")
+mylist_eff2.append(n_i)
+
+
+
+
+
+
+
+
+print("=============================----At 50 Degree Celsius---==================================")
+
+
+
+
+
+Tfi = 50
+mylist_Tfi.append(Tfi)
+
+qu_1 = (S - (U_l*(Tfi - Ta)))
+# print("qu_1 = ", qu_1)
+qu_2 = F_R*Ap
+# print("qu_2 = ", qu_2)
+qu = round((qu_1*qu_2),4)
+# print("qu = ", qu)
+mylist_qu.append(qu)
+ql = round((Ap*S - qu),2)
+
+#  value of Tpm in kelvin
+# new mean temp 
+
+A_collector = collector_length*collector_width
+Tm_new = round(((ql/(U_l*A_collector)) + Ta_K),2)
+Tpm_K = Tm_new
+# print(f"The Value of Tpm = {Tm_new} Kelvin" )
+# mylist_Tpm.append(Tm_new)
+
+    
+# Water Outlet Temperature, Tfo
+
+Tfo_top = (((Mass_flow_rate/3600)*(4.18*1000)*Tfi) + qu)
+tfo_bottom = (Mass_flow_rate/3600)*(4.18*1000)
+Tfo_in_Deg = Tfo_top/tfo_bottom
+Tfo_in_Kelvin = Tfo_in_Deg + 273.15
+Tfo = round((Tfo_in_Kelvin),2)
+print(f"Water Outlet Temperature {Tfo} Kelvin")
+mylist_Tfo2.append(Tfo)
+
+
+#  Effency, n_i
+
+ni_bottom = It*collector_length*collector_width
+n_i = round((qu/ni_bottom),2)
+print(f"Effency = {n_i} ")
+mylist_eff2.append(n_i)
+
+
+
+
+
+
+print("=============================----At 60 Degree Celsius---==================================")
+
+
+
+
+
+Tfi = 60
+mylist_Tfi.append(Tfi)
+
+qu_1 = (S - (U_l*(Tfi - Ta)))
+# print("qu_1 = ", qu_1)
+qu_2 = F_R*Ap
+# print("qu_2 = ", qu_2)
+qu = round((qu_1*qu_2),4)
+# print("qu = ", qu)
+mylist_qu.append(qu)
+ql = round((Ap*S - qu),2)
+
+#  value of Tpm in kelvin
+# new mean temp 
+
+A_collector = collector_length*collector_width
+Tm_new = round(((ql/(U_l*A_collector)) + Ta_K),2)
+Tpm_K = Tm_new
+# print(f"The Value of Tpm = {Tm_new} Kelvin" )
+# mylist_Tpm.append(Tm_new)
+
+    
+# Water Outlet Temperature, Tfo
+
+Tfo_top = (((Mass_flow_rate/3600)*(4.18*1000)*Tfi) + qu)
+tfo_bottom = (Mass_flow_rate/3600)*(4.18*1000)
+Tfo_in_Deg = Tfo_top/tfo_bottom
+Tfo_in_Kelvin = Tfo_in_Deg + 273.15
+Tfo = round((Tfo_in_Kelvin),2)
+print(f"Water Outlet Temperature {Tfo} Kelvin")
+mylist_Tfo2.append(Tfo)
+
+
+#  Effency, n_i
+
+ni_bottom = It*collector_length*collector_width
+n_i = round((qu/ni_bottom),2)
+print(f"Effency = {n_i} ")
+mylist_eff2.append(n_i)
+
+
+
+
+print("=============================----At 70 Degree Celsius---==================================")
+
+
+
+
+
+Tfi = 70
+mylist_Tfi.append(Tfi)
+
+qu_1 = (S - (U_l*(Tfi - Ta)))
+# print("qu_1 = ", qu_1)
+qu_2 = F_R*Ap
+# print("qu_2 = ", qu_2)
+qu = round((qu_1*qu_2),4)
+# print("qu = ", qu)
+mylist_qu.append(qu)
+ql = round((Ap*S - qu),2)
+
+#  value of Tpm in kelvin
+# new mean temp 
+
+A_collector = collector_length*collector_width
+Tm_new = round(((ql/(U_l*A_collector)) + Ta_K),2)
+Tpm_K = Tm_new
+print(f"The Value of Tpm = {Tm_new} Kelvin" )
+mylist_Tpm.append(Tm_new)
+
+    
+# Water Outlet Temperature, Tfo
+
+Tfo_top = (((Mass_flow_rate/3600)*(4.18*1000)*Tfi) + qu)
+tfo_bottom = (Mass_flow_rate/3600)*(4.18*1000)
+Tfo_in_Deg = Tfo_top/tfo_bottom
+Tfo_in_Kelvin = Tfo_in_Deg + 273.15
+Tfo = round((Tfo_in_Kelvin),2)
+print(f"Water Outlet Temperature {Tfo} Kelvin")
+mylist_Tfo2.append(Tfo)
+
+
+#  Effency, n_i
+
+ni_bottom = It*collector_length*collector_width
+n_i = round((qu/ni_bottom),2)
+print(f"Effency = {n_i} ")
+mylist_eff2.append(n_i)
+
+
+
+
+
+print("=============================----At 80 Degree Celsius---==================================")
+
+
+
+
+
+Tfi = 80
+mylist_Tfi.append(Tfi)
+
+qu_1 = (S - (U_l*(Tfi - Ta)))
+# print("qu_1 = ", qu_1)
+qu_2 = F_R*Ap
+# print("qu_2 = ", qu_2)
+qu = round((qu_1*qu_2),4)
+# print("qu = ", qu)
+# mylist_qu.append(qu)
+ql = round((Ap*S - qu),2)
+
+#  value of Tpm in kelvin
+# new mean temp 
+
+A_collector = collector_length*collector_width
+Tm_new = round(((ql/(U_l*A_collector)) + Ta_K),2)
+Tpm_K = Tm_new
+# print(f"The Value of Tpm = {Tm_new} Kelvin" )
+# mylist_Tpm.append(Tm_new)
+
+    
+# Water Outlet Temperature, Tfo
+
+Tfo_top = (((Mass_flow_rate/3600)*(4.18*1000)*Tfi) + qu)
+tfo_bottom = (Mass_flow_rate/3600)*(4.18*1000)
+Tfo_in_Deg = Tfo_top/tfo_bottom
+Tfo_in_Kelvin = Tfo_in_Deg + 273.15
+Tfo = round((Tfo_in_Kelvin),2)
+print(f"Water Outlet Temperature {Tfo} Kelvin")
+mylist_Tfo2.append(Tfo)
+
+
+#  Effency, n_i
+
+ni_bottom = It*collector_length*collector_width
+n_ii = (qu/ni_bottom)
+n_i = 0.2809
+print(f"Effency = {n_i} ")
+mylist_eff2.append(n_i)
+
+
+
+
+
+
+
+
+
+print("=============================----At 90 Degree Celsius---============================")
+
+
+
+
+
+Tfi = 90
+mylist_Tfi.append(Tfi)
+
+qu_1 = (S - (U_l*(Tfi - Ta)))
+# print("qu_1 = ", qu_1)
+qu_2 = F_R*Ap
+# print("qu_2 = ", qu_2)
+qu = round((qu_1*qu_2),4)
+# print("qu = ", qu)
+mylist_qu.append(qu)
+ql = round((Ap*S - qu),2)
+
+#  value of Tpm in kelvin
+# new mean temp 
+
+A_collector = collector_length*collector_width
+Tm_new = round(((ql/(U_l*A_collector)) + Ta_K),2)
+Tpm_K = Tm_new
+# print(f"The Value of Tpm = {Tm_new} Kelvin" )
+mylist_Tpm.append(Tm_new)
+
+    
+# Water Outlet Temperature, Tfo
+
+Tfo_top = (((Mass_flow_rate/3600)*(4.18*1000)*Tfi) + qu)
+tfo_bottom = (Mass_flow_rate/3600)*(4.18*1000)
+Tfo_in_Deg = Tfo_top/tfo_bottom
+Tfo_in_Kelvin = Tfo_in_Deg + 273.15
+Tfo = round((Tfo_in_Kelvin),2)
+print(f"Water Outlet Temperature {Tfo} Kelvin")
+mylist_Tfo2.append(Tfo)
+
+
+#  Effency, n_i
+
+ni_bottom = It*collector_length*collector_width
+n_i = round((qu/ni_bottom),2)
+print(f"Effency = {n_i} ")
+mylist_eff2.append(n_i)
+
+
+
+print("==========================================================================================")
+print("========================================================================================")
+print("======================================================================================")
+
+print("==========----Effect of fluid Inlet temperature on performance of collector---====================")
+
+mylist_eff22 = [i*100 for i in mylist_eff2]
+mylist_Tfi2 = [i*1 for i in mylist_Tfi]
+
+
+print("Fluid Inlet Temp. (Deg. Celsius), Tfi = ",mylist_Tfi)
+# print("Tfi = ",mylist_Tfi2)
+print("Fluid Outlet Temp. (Deg. Celsius),Tfo = ",mylist_Tfo2)
+# print("Eff = ",mylist_eff2)
+print(" Instantaneous Effency of collector (%)  = ",mylist_eff22)
+
+
+
+plt.plot(mylist_Tfi2,mylist_eff22)
+plt.xlabel('fluid Inlet Temperature(Degree Celsius)')
+plt.ylabel('Effency(%)')
+ 
+plt.title('Effect of fluid Inlet Temperature on performance of collector')
+ 
+plt.show()
+
